@@ -9,9 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^0.9.0",
     "babyparse": "^0.4.1",
     "fast-csv": "^0.5.4",
-    "iconv": "^2.1.4",
     "iconv-lite": "^0.4.5"
   }
 }

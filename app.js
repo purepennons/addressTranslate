@@ -7,20 +7,38 @@ var  fs                  = require('fs')
 var argv = process.argv;
 
 // if(argv.length === 5) {
-  var  filePath   = argv[2]
-     , addressCol = argv[3]
-     , from       = argv[4]
-     , to         = argv[5]
-     , outputPath = argv[6];
+  var  filePath        = argv[2]
+     , addressCol      = argv[3]
+     , from            = argv[4]
+     , to              = argv[5]
+     , outputPath      = argv[6]
+     , initialFilePath = argv[7];
 
   var readFromCSV = fs.readFileSync(filePath).toString();  //同步讀檔
+
+  if(initialFilePath) {
+    var initialFile = fs.readFileSync(initialFilePath).toString();  //同步讀檔
+    var initialJSON = baby.parse(initialFile);
+    var initData = initialJSON.data;
+  } else {
+    initData = null;
+  }
 
   var inputJSON = baby.parse(readFromCSV);
 
   var data = inputJSON.data;
 
-  var field = data.shift();
-  var truthData = data.slice(from, to);
+
+  // var field = data.shift();
+  var truthData = null;
+  if(to <= 0) {
+    truthData = data.slice(from);
+
+  } else {
+
+    truthData = data.slice(from, to);
+
+  }
 
   // var address = data.map(function(record) {
   //   return record[addressCol];
@@ -38,9 +56,11 @@ var argv = process.argv;
   //   if(err) throw err;
   //   console.log(address + ' was saved!');
   // });
+
+
   batch(truthData, [], truthData.length, 0);
 
-function batch(data, success, totalLength, counter) {
+function batch(truthData, success, totalLength, counter) {
 
   var unsuccess = [];
   var beforeSuccessLength = success.length;
@@ -76,7 +96,7 @@ function batch(data, success, totalLength, counter) {
 
   }, function(err) {
 
-    if(totalLength !== success.length) {
+    if(totalLength !== success.length && counter < 5) {
       if(beforeSuccessLength !== success.length || counter===0){
         console.log('b',beforeSuccessLength);
         console.log('a',success.length);
@@ -84,6 +104,7 @@ function batch(data, success, totalLength, counter) {
 
         console.log('success: ', success.length);
         console.log('unsuccess: ', unsuccess.length);
+
 
         var outputJSON = success;
 
@@ -118,9 +139,13 @@ function batch(data, success, totalLength, counter) {
           console.log(outputPath+'unsuccess'+counter + ' was saved!');
         });
 
+        counter = 1;
+
+      } else {
+        ++counter;
       }
 
-      batch(unsuccess, success, totalLength, ++counter);
+      batch(unsuccess, success, totalLength, counter);
 
     } else {
       // success.unshift(field);
